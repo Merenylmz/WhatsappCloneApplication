@@ -4,6 +4,8 @@ import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import store from '@/redux/store';
+import { Provider } from 'react-redux';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -14,12 +16,14 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)/register" options={{ headerShown: false }} />
-      </Stack>
-      <StatusBar style="auto" />
+      <Provider store={store}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)/login" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)/register" options={{ headerShown: false }} />
+          </Stack>
+        <StatusBar style="auto" />
+      </Provider>
     </ThemeProvider>
   );
 }

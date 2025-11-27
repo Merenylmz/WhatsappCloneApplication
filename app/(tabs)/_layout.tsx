@@ -22,6 +22,13 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="(message)/messages"
+        options={{
+          title: 'Messages',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="message.badge" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

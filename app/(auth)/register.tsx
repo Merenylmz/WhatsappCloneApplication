@@ -1,26 +1,54 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
-    useColorScheme,
+  Alert,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useColorScheme,
 } from "react-native";
 
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import colors from "@/constants/colors";
 import { Colors } from "@/constants/theme";
-import { Link } from "expo-router";
+import axios from "axios";
+import { Link, router } from "expo-router";
 
 const Register = () => {
-  // Şifre gizle/göster durumu için
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   
   const colorScheme = useColorScheme() ?? "light";
   const themeTextColor = Colors[colorScheme].text;
   const themeIconColor = Colors[colorScheme].icon || "#666"; // Varsa icon rengi, yoksa gri
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+
+  const registerTask = async()=>{
+    try {
+      if (!name || !email || !password) {
+        return Alert.alert("Error", "Please Give Valid information", [{
+          text: "OK",
+        }]);
+      }
+
+      const response = await axios.post(`http://localhost:3002/users/register`, {username: name, email, password});
+      const data = await response.data as {status: boolean, msg: any, token:any};
+      if (!data.status) {
+        return Alert.alert("Error", data.msg, [{
+          text: "OK", 
+        }]);
+      }
+
+      return router.push("/(auth)/login");
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Error");
+    }
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -45,6 +73,8 @@ const Register = () => {
               placeholderTextColor={themeIconColor}
               keyboardType="default"
               autoCapitalize="none"
+              onChangeText={setName}
+              value={name}
             />
           </View>
         </View>
@@ -59,6 +89,8 @@ const Register = () => {
               placeholderTextColor={themeIconColor}
               keyboardType="email-address"
               autoCapitalize="none"
+              onChangeText={setEmail}
+              value={email}
             />
           </View>
         </View>
@@ -72,6 +104,8 @@ const Register = () => {
               placeholder="••••••••"
               placeholderTextColor={themeIconColor}
               secureTextEntry={!isPasswordVisible}
+              onChangeText={setPassword}
+              value={password}
             />
             <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
               <Ionicons
@@ -84,8 +118,8 @@ const Register = () => {
         </View>
 
 
-        <TouchableOpacity style={[styles.loginButton, { backgroundColor: colors.primaryColor }]}>
-          <ThemedText style={styles.loginButtonText}>Giriş Yap</ThemedText>
+        <TouchableOpacity style={[styles.loginButton, { backgroundColor: colors.primaryColor }]} onPress={()=>registerTask()}>
+          <ThemedText style={styles.loginButtonText}>Kayıt Ol</ThemedText>
         </TouchableOpacity>
 
       </View>

@@ -1,27 +1,60 @@
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import colors from "@/constants/colors";
+import { Colors } from "@/constants/theme";
+import { login } from "@/redux/slices/authSlices";
 import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
+import { router } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   StyleSheet,
   TextInput,
   TouchableOpacity,
   View,
   useColorScheme,
 } from "react-native";
-
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import colors from "@/constants/colors";
-import { Colors } from "@/constants/theme";
-import { useNavigation } from "@react-navigation/native";
-import { Link } from "expo-router";
+import { useDispatch } from "react-redux";
 
 const Login = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const navigation = useNavigation();
   
   const colorScheme = useColorScheme() ?? "light";
   const themeTextColor = Colors[colorScheme].text;
-  const themeIconColor = Colors[colorScheme].icon || "#666"; // Varsa icon rengi, yoksa gri
+  const themeIconColor = Colors[colorScheme].icon || "#666"; 
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const dispatch = useDispatch();
+
+  const loginTask = async() =>{
+    try {
+      if (!email || !password) {
+        return Alert.alert("Error", "Please Give Valid information", [{
+          text: "OK",
+        }]);
+      }
+
+      const response = await axios.post(`http://localhost:3002/users/login`, {email, password});
+      const data = await response.data as {status: boolean, msg: any, token:any};
+      if (!data.status) {
+        return Alert.alert("Error", data.msg, [{
+          text: "OK", 
+        }]);
+      }
+
+      dispatch(login({token: data.token}));
+
+      console.log(data);
+      
+
+      return router.push("/(tabs)/(message)/messages");
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Error");
+    }
+    
+  }
 
   return (
     <ThemedView style={styles.container}>
@@ -47,6 +80,8 @@ const Login = () => {
               placeholderTextColor={themeIconColor}
               keyboardType="email-address"
               autoCapitalize="none"
+              onChangeText={setEmail}
+              value={email}
             />
           </View>
         </View>
@@ -60,6 +95,8 @@ const Login = () => {
               placeholder="••••••••"
               placeholderTextColor={themeIconColor}
               secureTextEntry={!isPasswordVisible}
+              onChangeText={setPassword}
+              value={password}
             />
             <TouchableOpacity onPress={() => setIsPasswordVisible(!isPasswordVisible)}>
               <Ionicons
@@ -75,7 +112,7 @@ const Login = () => {
           <ThemedText style={styles.forgotPasswordText}>Şifremi unuttum?</ThemedText>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.loginButton, { backgroundColor: colors.primaryColor }]}>
+        <TouchableOpacity style={[styles.loginButton, { backgroundColor: colors.primaryColor }]} onPress={()=>loginTask()}>
           <ThemedText style={styles.loginButtonText}>Giriş Yap</ThemedText>
         </TouchableOpacity>
 
@@ -83,20 +120,18 @@ const Login = () => {
 
       <View style={styles.footerContainer}>
         <ThemedText style={styles.footerText}>Hesabın yok mu? </ThemedText>
-          {/* <TouchableOpacity onPress={()=>navigation.navigate("/register")}>
+          <TouchableOpacity onPress={()=>router.push("/(auth)/register")}>
             <ThemedText style={[styles.signupText, { color: "#ccc" }]}>
               Kayıt Ol
             </ThemedText>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
       </View>
       <View style={styles.footerContainer}>
-        <Link href={`/qrLogin`}>
-          <TouchableOpacity>
-            <ThemedText style={[styles.signupText, { color: "#ccc" }]}>
-              QR ile Giriş
-            </ThemedText>
-          </TouchableOpacity>
-        </Link>
+        <TouchableOpacity onPress={()=>router.push("/(auth)/qrLogin")}>
+          <ThemedText style={[styles.signupText, { color: "#ccc" }]}>
+            QR ile Giriş
+          </ThemedText>
+        </TouchableOpacity>
       </View>
       
     </ThemedView>
