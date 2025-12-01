@@ -36,19 +36,17 @@ const Login = () => {
       }
 
       const response = await axios.post(`http://localhost:3002/users/login`, {email, password});
-      const data = await response.data as {status: boolean, msg: any, token:any};
+      const data = await response.data as {status: boolean, msg: any, token:any, user: any};
       if (!data.status) {
         return Alert.alert("Error", data.msg, [{
           text: "OK", 
         }]);
       }
 
-      dispatch(login({token: data.token}));
-
       console.log(data);
-      
+      dispatch(login({token: data.token, user: data.user}));
 
-      return router.push("/(tabs)/(message)/messages");
+      return router.push("/(tabs)/(conversations)/conversations");
     } catch (error) {
       console.log(error);
       Alert.alert("Error");

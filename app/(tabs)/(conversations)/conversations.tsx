@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -13,71 +13,50 @@ import {
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
+import { RootState } from "@/redux/store";
+import axios from "axios";
+import { router } from "expo-router";
+import { useSelector } from "react-redux";
 
-const MESSAGES_DATA = [
-  {
-    id: "1",
-    name: "Ahmet Yılmaz",
-    message: "Reisim projeyi ne yaptın? Bitti mi?",
-    time: "14:30",
-    avatar: "https://i.pravatar.cc/150?u=1",
-    unread: 2,
-  },
-  {
-    id: "2",
-    name: "Ayşe Demir",
-    message: "Tamamdır, yarın toplantıda görüşürüz.",
-    time: "12:15",
-    avatar: "https://i.pravatar.cc/150?u=2",
-    unread: 0,
-  },
-  {
-    id: "3",
-    name: "Mehmet Çelik",
-    message: "Dosyaları mail attım, kontrol eder misin?",
-    time: "Dün",
-    avatar: "https://i.pravatar.cc/150?u=3",
-    unread: 0,
-  },
-  {
-    id: "4",
-    name: "Zeynep Kaya",
-    message: "Harika olmuş, eline sağlık! 👏",
-    time: "Dün",
-    avatar: "https://i.pravatar.cc/150?u=4",
-    unread: 1,
-  },
-  {
-    id: "5",
-    name: "Teknik Destek",
-    message: "Talebiniz alınmıştır.",
-    time: "Pzt",
-    avatar: "https://i.pravatar.cc/150?u=5",
-    unread: 0,
-  },
-];
 
-const Messages = () => {
+const Conversations = () => {
   const colorScheme = useColorScheme() ?? "light";
   const themeIconColor = Colors[colorScheme].icon || "#666";
   const themeTextColor = Colors[colorScheme].text;
   const primaryColor = Colors[colorScheme].tint || "#0a7ea4"; // Veya kendi primary rengin
 
   const [searchText, setSearchText] = useState("");
+  const [conversations, setConversations] = useState();
+  const token = useSelector((state: RootState)=>state.auth.token);
 
-  const renderItem = ({ item }: { item: typeof MESSAGES_DATA[0] }) => (
+  useLayoutEffect(()=>{
+    (async()=>{
+      const response = await axios.get(`http://localhost:3002/conversations/?token=${token}`);
+      const data = response.data;
+      setConversations(data.conversations);
+    })()
+  }, [token]);
+
+  const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity 
       style={styles.chatItem} 
-      onPress={() => console.log("Sohbete git: ", item.name)}
+      onPress={() => router.push({
+        pathname: "/(message)/messages",
+        params: {
+          conversationid: item._id,
+          conversationname: item.groupName
+
+        }
+      })}
     >
-      <Image source={{ uri: item.avatar }} style={styles.avatar} />
+      <Image source={{ uri: "https://static.vecteezy.com/system/resources/previews/046/409/821/non_2x/avatar-profile-icon-in-flat-style-male-user-profile-illustration-on-isolated-background-man-profile-sign-business-concept-vector.jpg"}} style={styles.avatar} />
 
       <View style={styles.contentContainer}>
         <View style={styles.topRow}>
           <ThemedText type="defaultSemiBold" style={styles.nameText}>
-            {item.name}
+            {item.groupName}
           </ThemedText>
-          <ThemedText style={styles.timeText}>{item.time}</ThemedText>
+          <ThemedText style={styles.timeText}>{`TIME`}</ThemedText>
         </View>
 
         <View style={styles.bottomRow}>
@@ -88,12 +67,12 @@ const Messages = () => {
               item.unread > 0 ? { color: themeTextColor, fontWeight: '500' } : { color: '#888' }
             ]}
           >
-            {item.message}
+            {item.lastMessage.content}
           </ThemedText>
           
-          {item.unread > 0 && (
+          {item.readBy > 0 && (
             <View style={[styles.badge, { backgroundColor: primaryColor }]}>
-              <ThemedText style={styles.badgeText}>{item.unread}</ThemedText>
+              <ThemedText style={styles.badgeText}>{item.readBy}</ThemedText>
             </View>
           )}
         </View>
@@ -125,8 +104,8 @@ const Messages = () => {
       </View>
 
       <FlatList
-        data={MESSAGES_DATA}
-        keyExtractor={(item) => item.id}
+        data={conversations}
+        keyExtractor={(item) => item.__v}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
@@ -136,13 +115,13 @@ const Messages = () => {
   );
 };
 
-export default Messages;
+export default Conversations;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 17, 
-    paddingTop: 10, 
+    paddingTop: 25, 
   },
   header: {
     flexDirection: "row",

@@ -23,9 +23,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="(message)/messages"
+        name="(conversations)/conversations"
         options={{
-          title: 'Messages',
+          title: 'Conversations',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="message.badge" color={color} />,
         }}
       />
