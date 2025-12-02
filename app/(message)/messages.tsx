@@ -69,18 +69,24 @@ const Messages = () => {
     }
 
     socketService.on("newMessage", (message)=>{
+      console.log(message);
+      
+      const validMessageForm = {
+        ...message,
+        sender: message.sender._id
+      };
       setMessages((prevMessages: any)=>{
-        const isExists = prevMessages.some((msg: any) => msg._id === message._id);
+        const isExists = prevMessages.some((msg: any) => msg._id === validMessageForm._id);
         if (isExists) return prevMessages;
-        return [...prevMessages, message];
+        return [...prevMessages, validMessageForm];
       });
     });
   }, [conversationid, state.token]);
 
 
   const renderMessage = ({ item }: { item: any }) => {
-    
     const isMe = state.user._id === item.sender;
+
     
     return (
       <View style={[

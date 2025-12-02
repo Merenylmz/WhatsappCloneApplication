@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import {
   FlatList,
   Image,
@@ -14,6 +14,7 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { RootState } from "@/redux/store";
+import socketService from "@/socketio/socketio";
 import axios from "axios";
 import { router } from "expo-router";
 import { useSelector } from "react-redux";
@@ -36,6 +37,15 @@ const Conversations = () => {
       setConversations(data.conversations);
     })()
   }, [token]);
+
+  useEffect(()=>{
+    socketService.connect(token);
+
+    socketService.on("newMessage", (message)=>{
+      
+
+    });
+  }, [conversations, token]);
 
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity 
@@ -67,7 +77,7 @@ const Conversations = () => {
               item.unread > 0 ? { color: themeTextColor, fontWeight: '500' } : { color: '#888' }
             ]}
           >
-            {item.lastMessage.content}
+            {item.lastMessage && item.lastMessage.content}
           </ThemedText>
           
           {item.readBy > 0 && (
