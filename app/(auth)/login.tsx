@@ -2,9 +2,8 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import colors from "@/constants/colors";
 import { Colors } from "@/constants/theme";
-import { login } from "@/redux/slices/authSlices";
+import { loginRequest } from "@/redux/action/action";
 import { Ionicons } from "@expo/vector-icons";
-import axios from "axios";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -27,24 +26,14 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
 
-  const loginTask = async() =>{
+    const loginTask = async() =>{
     try {
       if (!email || !password) {
         return Alert.alert("Error", "Please Give Valid information", [{
           text: "OK",
         }]);
       }
-
-      const response = await axios.post(`http://localhost:3002/users/login`, {email, password});
-      const data = await response.data as {status: boolean, msg: any, token:any, user: any};
-      if (!data.status) {
-        return Alert.alert("Error", data.msg, [{
-          text: "OK", 
-        }]);
-      }
-
-      console.log(data);
-      dispatch(login({token: data.token, user: data.user}));
+      dispatch(loginRequest(email, password));
 
       return router.push("/(tabs)/(conversations)/conversations");
     } catch (error) {

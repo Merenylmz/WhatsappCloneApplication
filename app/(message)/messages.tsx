@@ -24,7 +24,7 @@ import { useSelector } from "react-redux";
 const Messages = () => {
   const { conversationid, conversationname } = useLocalSearchParams();
   const [messages, setMessages] = useState<any[]>([]);
-  const state = useSelector((state: RootState)=>state.auth) as {user: any, token: string}; 
+  const state = useSelector((state: RootState)=>state) as {user: any, token: string}; 
   const [inputText, setInputText] = useState("");
   const flatListRef = useRef<FlatList>(null);
 
@@ -37,7 +37,7 @@ const Messages = () => {
 
     const handleSend = () => {
         if (inputText.trim().length === 0 || !state.user) return;
-
+        
         socketService.sendMessage({
           conversationId: conversationid,
           content: inputText
@@ -69,11 +69,13 @@ const Messages = () => {
     }
 
     socketService.on("newMessage", (message)=>{
-      console.log(message);
+      setTimeout(() => {
+        console.log("Message", message);
+      }, 1500);
       
       const validMessageForm = {
         ...message,
-        sender: message.sender._id
+        username: message.sender.username
       };
       setMessages((prevMessages: any)=>{
         const isExists = prevMessages.some((msg: any) => msg._id === validMessageForm._id);
@@ -85,8 +87,20 @@ const Messages = () => {
 
 
   const renderMessage = ({ item }: { item: any }) => {
-    const isMe = state.user._id === item.sender;
 
+    if (!state.user && !item.sender) {
+      return <></>;
+    }
+
+    const isMe = state.user._id === item.sender._id;
+    console.log("****************************");
+    console.log("state: ", state.user._id);
+    console.log("item: ", item.sender);
+    console.log("isme ", isMe);
+    console.log("****************************");
+
+    
+    
     
     return (
       <View style={[
@@ -97,13 +111,15 @@ const Messages = () => {
            // Karşı tarafın küçük avatarı (Opsiyonel)
            <Image source={{ uri: "https://i.pravatar.cc/150?u=2" }} style={styles.smallAvatar} />
         )} */}
-
         <View style={[
           styles.bubble,
           isMe 
             ? { backgroundColor: otherBubbleColor , borderBottomRightRadius: 4 } 
             : { backgroundColor: "#313131ff", borderBottomLeftRadius: 4 }
         ]}>
+          {
+            !isMe && <ThemedText style={styles.personInfo}>{item.sender.username}</ThemedText>
+          }
           <ThemedText style={[
             styles.messageText, 
             isMe ? { color: 'white' } : { color: themeTextColor }
@@ -290,4 +306,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  personInfo: {
+    fontSize: 10,
+    fontWeight: "bold"
+  }
 });

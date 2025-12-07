@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 
+import LoginLoader from "@/components/custom/loadingComponent";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
@@ -28,9 +29,10 @@ const Conversations = () => {
 
   const [searchText, setSearchText] = useState("");
   const [conversations, setConversations] = useState();
-  const token = useSelector((state: RootState)=>state.auth.token);
+  const {token, loading} = useSelector((state: RootState)=>state);
 
   useLayoutEffect(()=>{
+    
     (async()=>{
       const response = await axios.get(`http://localhost:3002/conversations/?token=${token}`);
       const data = response.data;
@@ -39,12 +41,12 @@ const Conversations = () => {
   }, [token]);
 
   useEffect(()=>{
-    socketService.connect(token);
-
-    socketService.on("newMessage", (message)=>{
+    if (token) {
+      socketService.connect(token);
       
-
-    });
+      socketService.on("newMessage", (message)=>{
+      });
+    }
   }, [conversations, token]);
 
   const renderItem = ({ item }: { item: any }) => (
@@ -92,10 +94,11 @@ const Conversations = () => {
 
   return (
     <ThemedView style={styles.container}>
+      <LoginLoader visible={loading}/>
       
       <View style={styles.header}>
         <ThemedText type="title">Mesajlar</ThemedText>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={()=>console.log(token)}>
            <Ionicons name="create-outline" size={28} color={primaryColor} />
         </TouchableOpacity>
       </View>
