@@ -49,6 +49,11 @@ class SocketIOService {
             this.socket.off(event);
         }
     }
+    readMessage(conversationId: string){
+        if (this.socket) {
+            this.socket.emit("readMessage", {conversationId: conversationId});
+        }
+    }
 
     disconnect() {
         if (this.socket) {
@@ -56,6 +61,7 @@ class SocketIOService {
             this.socket = null;
         }
     }
+    
 }
 
 

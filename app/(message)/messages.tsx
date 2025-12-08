@@ -18,6 +18,7 @@ import { ThemedView } from "@/components/themed-view";
 import { Colors } from "@/constants/theme";
 import { RootState } from "@/redux/store";
 import socketService from "@/socketio/socketio";
+import { useIsFocused } from "@react-navigation/native";
 import axios from "axios";
 import { useSelector } from "react-redux";
 
@@ -27,7 +28,7 @@ const Messages = () => {
   const state = useSelector((state: RootState)=>state) as {user: any, token: string}; 
   const [inputText, setInputText] = useState("");
   const flatListRef = useRef<FlatList>(null);
-
+  const isFocused = useIsFocused();
   const colorScheme = useColorScheme() ?? "light";
   const themeTextColor = Colors[colorScheme].text;
   const themeIconColor = Colors[colorScheme].icon || "#666";
@@ -54,25 +55,22 @@ const Messages = () => {
   }, [messages]);
 
   useLayoutEffect(()=>{
+    socketService.connect(state.token);
     (async()=>{
       const response = await axios.get(`http://localhost:3002/messages?conversationid=${conversationid}`);
       const data = response.data;
       setMessages(data.messages);
     })()
-  }, [conversationid, state]); 
+  }, [conversationid, state.token]); 
 
   useEffect(()=>{
-    socketService.connect(state.token);
 
     if (conversationid) {
       socketService.joinRoom(conversationid as string);
     }
+    
 
     socketService.on("newMessage", (message)=>{
-      setTimeout(() => {
-        console.log("Message", message);
-      }, 1500);
-      
       const validMessageForm = {
         ...message,
         username: message.sender.username
@@ -83,7 +81,14 @@ const Messages = () => {
         return [...prevMessages, validMessageForm];
       });
     });
+
   }, [conversationid, state.token]);
+
+  useEffect(()=>{
+    if (conversationid) {
+      socketService.readMessage(conversationid.toString());
+    }
+  }, [isFocused, conversationid]);
 
 
   const renderMessage = ({ item }: { item: any }) => {
@@ -93,14 +98,6 @@ const Messages = () => {
     }
 
     const isMe = state.user._id === item.sender._id;
-    console.log("****************************");
-    console.log("state: ", state.user._id);
-    console.log("item: ", item.sender);
-    console.log("isme ", isMe);
-    console.log("****************************");
-
-    
-    
     
     return (
       <View style={[
